@@ -3,6 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from . import utils
+import csv
+from django.http import HttpResponse
+
 # Create your views here.
 OFFER = {}
 LEADS = []
@@ -49,3 +52,21 @@ class Results(APIView):
         if not SCORED_RESULTS:
             return Response({"error": "No results found"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"results": SCORED_RESULTS}, status=status.HTTP_200_OK)
+    
+class DownloadResults(APIView):
+    # Download results as CSV
+    def get(self, request):
+        global SCORED_RESULTS
+
+        if not SCORED_RESULTS:
+            return Response({"error": "No results found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        response= HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="scored_results.csv"'
+
+        writer= csv.writer(response)
+
+        writer.writerow(SCORED_RESULTS.keys())
+        writer.writerow(SCORED_RESULTS.values())
+
+        return response
