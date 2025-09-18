@@ -36,9 +36,8 @@ Notes:
 - `DJANGO_ALLOWED_HOSTS` is space-separated.
 - On Render, set these in the Dashboard → Environment.
 
-### Run migrations and start server
+### Start server
 ```bash
-python manage.py migrate
 python manage.py runserver 0.0.0.0:8000
 ```
 
@@ -46,11 +45,11 @@ Base URL locally: `http://localhost:8000/`
 
 
 ## API Endpoints
-Base path for app: `/scores/`
+Base path for app: `/api/`
 
 ### 1) Upload Offer
 - Method: POST
-- URL: `/scores/offer/`
+- URL: `/api/offer/`
 - Body (JSON):
 ```json
 {
@@ -62,7 +61,7 @@ Base path for app: `/scores/`
 ```
 - cURL:
 ```bash
-curl -X POST http://localhost:8000/scores/offer/ \
+curl -X POST http://localhost:8000/api/offer/ \
   -H "Content-Type: application/json" \
   -d '{
     "product_name": "Acme Sales Copilot",
@@ -74,12 +73,12 @@ curl -X POST http://localhost:8000/scores/offer/ \
 
 ### 2) Upload Leads (CSV)
 - Method: POST (multipart/form-data)
-- URL: `/scores/leads/upload/`
+- URL: `/api/leads/upload/`
 - Form field: `file` (CSV file)
 - CSV headers expected: `name,role,company,industry,location,linkedin_bio`
 - cURL:
 ```bash
-curl -X POST http://localhost:8000/scores/leads/upload/ \
+curl -X POST http://localhost:8000/api/leads/upload/ \
   -F "file=@./sample_leads.csv"
 ```
 
@@ -92,16 +91,16 @@ John Smith,Engineer,Widgets Inc,Manufacturing,SF,Building internal tools
 
 ### 3) Run Scoring
 - Method: POST
-- URL: `/scores/score/`
+- URL: `/api/score/`
 - Body: empty JSON `{}` is fine
 - cURL:
 ```bash
-curl -X POST http://localhost:8000/scores/score/ -H "Content-Type: application/json" -d '{}'
+curl -X POST http://localhost:8000/api/score/ -H "Content-Type: application/json" -d '{}'
 ```
 
 ### 4) Fetch Results
 - Method: GET
-- URL: `/scores/results/`
+- URL: `/api/results/`
 - cURL:
 ```bash
 curl http://localhost:8000/scores/results/
@@ -109,10 +108,10 @@ curl http://localhost:8000/scores/results/
 
 ### 5) Download Results (CSV)
 - Method: GET
-- URL: `/scores/results/download/`
+- URL: `/api/results/download/`
 - cURL:
 ```bash
-curl -L -o scored_results.csv http://localhost:8000/scores/results/download/
+curl -L -o scored_results.csv http://localhost:8000/api/results/download/
 ```
 
 Notes:
@@ -143,21 +142,6 @@ You are a sales assistant. Given the product/offer details and the lead info, cl
   - Intent thresholds: ≥ 70 → High, ≥ 40 → Medium, else Low
 
 
-## Testing
-Current automated tests are minimal. Validation performed for this assessment:
-- Postman flows for happy paths and error cases:
-  - Offer missing → `400`
-  - Leads file missing → `400`
-  - Score before uploads → `400`
-  - Results before scoring → `404`
-- Manual CSV parsing validation with sample data.
-- AI layer sanity checks for JSON-only responses and intent mapping.
-
-Potential test additions (not yet included):
-- Unit tests for `industry_match`, `calculate_rule_score`, and thresholding.
-- Contract tests for endpoints with fixtures.
-- Mocked AI client for deterministic scoring in CI.
-
 
 ## Why `runserver` instead of Gunicorn
 - For a small assessment and to simplify local setup, `python manage.py runserver` is sufficient.
@@ -170,27 +154,9 @@ The app is deployed to Render at `https://kuveka-scores-assessment.onrender.com`
 
 High-level steps:
 - Service type: Web Service
-- Start command: `python manage.py migrate && python manage.py runserver 0.0.0.0:$PORT`
+- Start command: `python manage.py runserver 0.0.0.0:$PORT`
 - Environment: Python 3.11
 - Environment variables: set `SECRET_KEY`, `DEBUG=False`, `DJANGO_ALLOWED_HOSTS="kuveka-scores-assessment.onrender.com"`, `GEMINI_API_KEY`
-
-
-## Postman Collection (optional)
-If desired, export a Postman collection with the five endpoints above and include it under `docs/postman_collection.json`.
-
-
-## Local development tips
-- Use a dedicated `.env` and never commit secrets.
-- If you hit AI quota/latency, temporarily stub the AI call in `ai_intent_score` and return a fixed intent for development.
-- CSVs should be UTF-8 encoded; headers must match exactly.
-
-
-## Limitations and Future Improvements
-- In-memory storage of offer/leads/results; not multi-user safe. Replace with database models keyed per session or user.
-- Only the first lead in the uploaded CSV is currently scored end-to-end. Extend to batch scoring and return a list of results.
-- Add retries and structured error handling for AI client; validate and sanitize JSON responses more robustly.
-- Add comprehensive tests and CI with mocked AI.
-- Swap `runserver` with Gunicorn/Uvicorn in production and add Docker healthchecks.
 
 
 ## Repository Structure
@@ -206,7 +172,3 @@ requirements.txt
 Dockerfile
 docker-compose.yaml    # (optional; not strictly required for local run)
 ```
-
-
-## License
-MIT or as specified by the hosting repository.
