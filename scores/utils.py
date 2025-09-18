@@ -61,7 +61,7 @@ def industry_match(lead_industry, ideal_use_cases):
         
         # Fuzzy match (e.g: "fintech" vs "financial services")
         similarity = difflib.SequenceMatcher(None, lead_industry, uc).ratio()
-        if similarity > 0.75:  # Can be tuned
+        if similarity > 0.3:  # Can be tuned
             return 10
     
     return 0
