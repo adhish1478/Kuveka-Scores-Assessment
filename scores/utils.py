@@ -6,8 +6,8 @@ from google import genai
 from django.conf import settings
 
 
-# In-memory storage
-LEADS = []
+
+#-------- Parsing csv function --------------------------
 
 def parse_leads_csv(file):
     """
@@ -36,13 +36,15 @@ def parse_leads_csv(file):
     return LEADS
 
 # Role relevance mapping
+
 ROLE_SCORE = {
     'decision_maker': 20,
     'influencer': 10,
     'others': 0
 }
 
-# Industry match function
+# --------- Industry match function --------------
+
 def industry_match(lead_industry, ideal_use_cases):
     lead_industry = lead_industry.lower().strip()
     
@@ -64,7 +66,8 @@ def industry_match(lead_industry, ideal_use_cases):
     
     return 0
 
-# Rule Layer scoring
+#  --------------- Rule Layer scoring ---------------
+
 def calculate_rule_score(lead, offer):
     score = 0
     # Role relevance
